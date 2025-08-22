@@ -38,7 +38,6 @@ def fireworks():
         for _ in range(20)
     ])
     st.markdown(fire_html, unsafe_allow_html=True)
-    # 축하 사운드 삽입
     st.audio('https://www.soundjay.com/human/applause-01.mp3', format='audio/mp3', start_time=0)
 
 # ===================== 타이틀 =====================
@@ -118,13 +117,18 @@ if step < total:
 
     b1, b2 = st.columns([1,1])
     with b1:
-        if st.button("제출하기", type="primary", use_container_width=True, disabled=st.session_state.revealed or st.session_state.selected is None):
+        if st.button("제출하기", type="primary", use_container_width=True, disabled=st.session_state.revealed):
+            if st.session_state.selected is None:
+                st.warning("⚠️ 답을 선택하지 않았습니다. 건너뛰기로 처리됩니다.")
+            else:
+                if st.session_state.selected == q["answer"]:
+                    st.session_state.score += 1
             st.session_state.revealed = True
-            if st.session_state.selected == q["answer"]:
-                st.session_state.score += 1
+
     with b2:
         if st.button("건너뛰기", use_container_width=True, disabled=st.session_state.revealed):
             st.session_state.revealed = True
+            st.session_state.selected = None
 
     if st.session_state.revealed:
         if st.session_state.selected == q["answer"]:
