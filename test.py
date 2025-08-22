@@ -13,19 +13,6 @@ CUSTOM_CSS = """
         box-shadow: 0 8px 24px rgba(30, 64, 175, 0.08);
     }
     .badge {display:inline-block;padding:6px 10px;border-radius:999px;background:#eef2ff;color:#3730a3;font-weight:600;font-size:12px;border:1px solid #c7d2fe}
-    .snowflake {
-        color: #9dd9ff;
-        font-size: 24px;
-        position: fixed;
-        top: -10px;
-        animation-name: fall;
-        animation-duration: 10s;
-        animation-iteration-count: infinite;
-    }
-    @keyframes fall {
-        0% {transform: translateY(0); opacity: 1;}
-        100% {transform: translateY(100vh); opacity: 0;}
-    }
     .firework {
         position: fixed;
         width: 8px;
@@ -43,13 +30,6 @@ CUSTOM_CSS = """
 """
 
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
-
-# 눈송이 효과
-snowflakes = "".join([
-    f"<div class='snowflake' style='left:{random.randint(0,100)}%; animation-delay:{random.random()*5}s;'>❄️</div>"
-    for _ in range(15)
-])
-st.markdown(snowflakes, unsafe_allow_html=True)
 
 # 불꽃놀이 효과 (정답률 100%일 때)
 def fireworks():
@@ -182,4 +162,4 @@ else:
             st.session_state.selected = None
             st.rerun()
     with b2:
-        st.caption("❄️ 눈송이, 🎆 불꽃놀이, 🎶 축하 사운드 효과가 활성화되었습니다.")
+        st.caption("🎆 불꽃놀이와 🎶 축하 사운드 효과가 활성화되었습니다.")
