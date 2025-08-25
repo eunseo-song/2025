@@ -3,18 +3,8 @@ import streamlit as st
 # 페이지 설정
 st.set_page_config(page_title="응급처치 퀴즈", page_icon="⛑️", layout="centered")
 
-# ===================== CSS =====================
-CUSTOM_CSS = """
-<style>
-    .main > div {max-width: 820px;}
-    .quiz-card {
-        padding: 20px; border-radius: 18px; border: 1px solid #e6f0ff;
-        background: linear-gradient(180deg, #f7fbff 0%, #ffffff 100%);
-        box-shadow: 0 8px 24px rgba(30, 64, 175, 0.08);
-    }
-</style>
-"""
-st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+st.title("⛑️ 응급처치 퀴즈")
+st.write("모든 문제를 풀고 마지막에 결과를 확인하세요!")
 
 # ===================== 퀴즈 데이터 =====================
 quizzes = [
@@ -32,73 +22,52 @@ quizzes = [
      "explanation": "화상 부위는 즉시 미지근~차가운 물로 10~20분 냉각, 얼음·연고·치약은 피합니다."},
 ]
 
-total = len(quizzes)
-
 # ===================== 상태 =====================
-if "step" not in st.session_state:
-    st.session_state.step = 0
-    st.session_state.score = 0
-    st.session_state.answers = {}  # 사용자가 고른 답
+if "submitted" not in st.session_state:
+    st.session_state.submitted = False
+    st.session_state.answers = {}
 
-step = st.session_state.step
+# ===================== 문제 출력 =====================
+st.header("문제 풀기")
 
-# ===================== 현재 문제 =====================
-if step < total:
-    q = quizzes[step]
+for idx, q in enumerate(quizzes):
+    st.subheader(f"문제 {idx+1}. {q['question']}")
+    choice = st.radio(
+        "답을 고르세요:",
+        q["choices"],
+        key=f"q_{idx}",
+        index=None
+    )
+    if choice:
+        st.session_state.answers[idx] = choice
+    st.markdown("---")
 
-    # 카드
-    st.markdown('<div class="quiz-card">', unsafe_allow_html=True)
-    st.subheader(f"문제 {step+1}. {q['question']}")
+# ===================== 결과 버튼 =====================
+if not st.session_state.submitted:
+    if st.button("결과 확인", type="primary"):
+        st.session_state.submitted = True
+        st.rerun()
 
-    # 이전 선택 복원
-    prev_answer = st.session_state.answers.get(step, None)
-    selected = st.radio("답을 선택하세요:", q["choices"],
-                        index=q["choices"].index(prev_answer) if prev_answer in q["choices"] else None,
-                        key=f"radio_{step}")
+# ===================== 결과 화면 =====================
+if st.session_state.submitted:
+    st.header("📊 결과")
+    score = 0
 
-    # 선택 저장
-    if selected:
-        st.session_state.answers[step] = selected
+    for idx, q in enumerate(quizzes):
+        user_ans = st.session_state.answers.get(idx, "선택 안 함")
+        correct = (user_ans == q["answer"])
+        if correct:
+            score += 1
+            st.success(f"문제 {idx+1}: 정답 ✅ ({user_ans})")
+        else:
+            st.error(f"문제 {idx+1}: 오답 ❌ (내 답: {user_ans})")
+            st.info(f"정답: {q['answer']}")
 
-    # 버튼
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("제출하기", type="primary", use_container_width=True):
-            if step not in st.session_state.answers:
-                st.warning("⚠️ 답을 선택하지 않았습니다. 건너뜀으로 처리됩니다.")
-            else:
-                if st.session_state.answers[step] == q["answer"]:
-                    st.session_state.score += 1
-                    st.success("✅ 정답입니다!")
-                else:
-                    st.error(f"❌ 오답입니다. 정답: {q['answer']}")
-                st.info(f"해설: {q['explanation']}")
+        st.caption(f"💡 해설: {q['explanation']}")
+        st.markdown("---")
 
-            st.session_state.step += 1
-            st.rerun()
+    st.subheader(f"최종 점수: {score} / {len(quizzes)}")
 
-    with col2:
-        if st.button("건너뛰기", use_container_width=True):
-            st.session_state.step += 1
-            st.rerun()
-
-    st.markdown('</div>', unsafe_allow_html=True)
-
-# ===================== 퀴즈 완료 =====================
-else:
-    st.success(f"퀴즈 완료! 점수: {st.session_state.score} / {total}")
-
-    # 복습
-    st.subheader("📘 복습하기")
-    for i, q in enumerate(quizzes):
-        user_ans = st.session_state.answers.get(i, "선택 안 함")
-        result = "⭕" if user_ans == q["answer"] else "❌"
-        st.markdown(f"**문제 {i+1}. {q['question']}**")
-        st.write(f"- 내 답: {user_ans} {result}")
-        st.write(f"- 정답: {q['answer']}")
-        st.caption(f"해설: {q['explanation']}")
-        st.divider()
-
-    if st.button("🔄 다시 시작하기", type="primary"):
+    if st.button("🔄 다시 풀기"):
         st.session_state.clear()
         st.rerun()
